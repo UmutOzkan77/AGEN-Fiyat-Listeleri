@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template
 from werkzeug.utils import secure_filename
 import os
 import pandas as pd
@@ -10,7 +10,7 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 
 @app.route('/')
 def home():
-    return "Welcome to the Price Query System API"
+    return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
