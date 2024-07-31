@@ -1,10 +1,16 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 import os
 import pandas as pd
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads/'
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+@app.route('/')
+def home():
+    return "Welcome to the Price Query System API"
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -36,8 +42,23 @@ def delete_file():
 def query_file():
     data = request.get_json()
     query = data.get('query')
-    # Burada GPT-4 ile sorguyu işleyip doğru dosyayı ve bilgiyi bulmak için gerekli kodlar yazılacak
-    return jsonify({"message": "Query processed successfully"}), 200
+    response = {"message": "Query processed successfully", "results": []}
+
+    for file in os.listdir(app.config['UPLOAD_FOLDER']):
+        if file.endswith('.xlsx') or file.endswith('.xls'):
+            df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], file))
+            if query in df.values:
+                result = df[df.apply(lambda row: query in row.values, axis=1)]
+                response['results'].append({
+                    "file": file,
+                    "data": result.to_dict(orient='records')
+                })
+
+    return jsonify(response), 200
+
+@app.route('/uploads/<filename>', methods=['GET'])
+def download_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
