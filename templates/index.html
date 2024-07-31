@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Query System</title>
+</head>
+<body>
+    <h1>Price Query System</h1>
+    <h2>Upload File</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+    <h2>Query</h2>
+    <input type="text" id="queryInput" placeholder="Enter your query">
+    <button id="queryButton">Query</button>
+    <h2>Results</h2>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('uploadForm').onsubmit = async function (e) {
+            e.preventDefault();
+            let fileInput = document.getElementById('fileInput');
+            let formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            let response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            let result = await response.json();
+            alert(result.message);
+        };
+
+        document.getElementById('queryButton').onclick = async function () {
+            let queryInput = document.getElementById('queryInput').value;
+
+            let response = await fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: queryInput })
+            });
+
+            let result = await response.json();
+            let resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = JSON.stringify(result.results, null, 2);
+        };
+    </script>
+</body>
+</html>
